@@ -8,19 +8,29 @@ import {
 } from '@g-loot/react-tournament-brackets';
 import defaultTheme from "../Themes/defaultTheme";
 import {useSelector, useDispatch} from "react-redux";
-import {updateCBracketMatches, updateChampionshipBracketMatches} from "../../features/singles/singlesSlice";
+import {
+    updateBBracketMatches,
+    updateCBracketMatches,
+    updateChampionshipBracketMatches
+} from "../../features/singles/singlesSlice";
 import axios from "axios";
 
 function SinglesBracket({}) {
     const dispatch = useDispatch()
     const matchArray = structuredClone(useSelector((state) => state.singles.championshipBracketMatches));
+    const bMatchArray = structuredClone(useSelector((state) => state.singles.bBracketMatches));
     const cMatchArray = structuredClone(useSelector((state) => state.singles.cBracketMatches));
 
     // const [width, height] = [1920, 1080];
     // const finalWidth = Math.max(width - 50, 500);
     // const finalHeight = Math.max(height - 100, 500);
+
+    // THIS IS CORRECT
     const windowSize = useRef([window.innerWidth, window.innerHeight]);
     const finalWidth = Math.max(windowSize.current[0] - 50, 500);
+
+    // const finalWidth = 1920;
+
     // const finalHeight = Math.max(windowSize.current[1] - 100, 500);
     const finalHeight = 100000000;
 
@@ -103,7 +113,7 @@ function SinglesBracket({}) {
     // }
     return (
         <div>
-            {/*<button type="button" onClick={test}>TESFDFKJL</button>*/}
+
             {/*<button type="button" onClick={test2}>TESFDFKJL</button>*/}
             {/*<button type="button" onClick={test3}>TESFDFKJL</button>*/}
             {(matchArray.length > 0 && doDisp) && (<>{matchArray.length}<SingleEliminationBracket
@@ -165,8 +175,9 @@ function SinglesBracket({}) {
                                 let updateMatchBracketObj = {};
                                 let insertMatchArr = [];
                                 let num = ((matchArray.length) + 1) / 2;
-
+                                console.log("NUM IS: " + num)
                                 let matchIdMidValueIncr = num / 4 + num / 2;
+                                console.log("MATCH ID INCR IS: " + matchIdMidValueIncr);
                                 let num2 = num / 2
                                 let tempCompArr = [num]
                                 let tempMidValueArr = [num2]
@@ -187,7 +198,11 @@ function SinglesBracket({}) {
                                 // console.log("MID: " + num2);
                                 // console.log(match);
                                 // console.log(matchArray)
+                                console.log("NUM IS: " + num)
+                                console.log("MATCH ID INCR IS: " + matchIdMidValueIncr);
+                                console.log("NUM 2 is: " + num2)
                                 let temp = structuredClone(matchArray)
+                                let bBracket = structuredClone(bMatchArray)
                                 let cBracket = structuredClone(cMatchArray)
                                 console.log("TEMP ARR")
                                 console.log(temp)
@@ -214,7 +229,8 @@ function SinglesBracket({}) {
                                 console.log("SDFSDFSDF")
                                 console.log(match.nextMatchId - cBracket[0].id)
                                 console.log(cBracket[match.nextMatchId - cBracket[0].id])
-                                if (match.tournamentRoundText === "1") {
+                                console.log("TOURNEY ROUND TEXT: " + match.tournamentRoundText)
+                                if (match.tournamentRoundText.toString() === "1") {
                                     if (match.id < num2) {
                                         insertMatchArr.push(["SinglesCBracket", bottomParty.id, bottomParty.name, cBracket[match.nextMatchId - cBracket[0].id].participants[1].id, cBracket[match.nextMatchId - cBracket[0].id].participants[1].name, match.nextMatchId])
                                     } else {
@@ -244,6 +260,46 @@ function SinglesBracket({}) {
                                                 id: cBracket[match.nextMatchId - cBracket[0].id].participants[0].id,
                                                 isWinner: false,
                                                 name: cBracket[match.nextMatchId - cBracket[0].id].participants[0].name,
+                                            },
+                                            {
+                                                id: bottomParty.id,
+                                                isWinner: false,
+                                                name: bottomParty.name,
+                                            }
+                                        ]),
+                                        tournamentRoundText: temp[match.nextMatchId].tournamentRoundText
+                                    }
+                                } else if (match.tournamentRoundText.toString() === "2") {
+                                    console.log("ROUND 2")
+                                    if (match.id < num2) {
+                                        insertMatchArr.push(["SinglesBBracket", bottomParty.id, bottomParty.name, bBracket[match.nextMatchId - bBracket[0].id].participants[1].id, bBracket[match.nextMatchId - bBracket[0].id].participants[1].name, match.nextMatchId])
+                                    } else {
+                                        insertMatchArr.push(["SinglesBBracket", bBracket[match.nextMatchId - bBracket[0].id].participants[0].id, bBracket[match.nextMatchId - bBracket[0].id].participants[0].name, bottomParty.id, bottomParty.name, match.nextMatchId])
+                                    }
+                                    bBracket[match.nextMatchId - bBracket[0].id] = {
+                                        id: match.nextMatchId,
+                                        name: "name",
+                                        // nextMatchId: midPoint + i,
+                                        nextMatchId: temp[match.nextMatchId].nextMatchId,
+                                        state: "SCHEDULED",
+                                        participants: (match.id < num2 ? [
+                                            {
+                                                id: bottomParty.id,
+                                                isWinner: false,
+                                                name: bottomParty.name,
+                                            },
+                                            {
+                                                id: bBracket[match.nextMatchId - bBracket[0].id].participants[1].id,
+                                                isWinner: false,
+                                                name: bBracket[match.nextMatchId - bBracket[0].id].participants[1].name,
+                                            }
+
+
+                                        ] : [
+                                            {
+                                                id: bBracket[match.nextMatchId - bBracket[0].id].participants[0].id,
+                                                isWinner: false,
+                                                name: bBracket[match.nextMatchId - bBracket[0].id].participants[0].name,
                                             },
                                             {
                                                 id: bottomParty.id,
@@ -303,7 +359,10 @@ function SinglesBracket({}) {
                                 dispatch(updateChampionshipBracketMatches(temp))
                                 console.log("CBRACKET")
                                 console.log(cBracket)
+                                console.log("BBRACKET")
+                                console.log(bBracket)
                                 dispatch(updateCBracketMatches(cBracket))
+                                dispatch(updateBBracketMatches(bBracket))
                             }}
                         >
                             <div>{topParty.name || teamNameFallback}</div>
@@ -337,6 +396,7 @@ function SinglesBracket({}) {
 
                                 }
                                 let temp = structuredClone(matchArray)
+                                let bBracket = structuredClone(bMatchArray)
                                 let cBracket = structuredClone(cMatchArray)
                                 console.log("TEMP ARR")
                                 console.log(temp)
@@ -360,7 +420,7 @@ function SinglesBracket({}) {
                                     "tournamentRoundText": match.tournamentRoundText
                                 }
                                 updateMatchBracketObj.matchResult = ["SinglesChampionshipBracket", false, true, match.id]
-                                if (match.tournamentRoundText === "1") {
+                                if (match.tournamentRoundText.toString() === "1") {
                                     if (match.id < num2) {
                                         insertMatchArr.push(["SinglesCBracket", topParty.id, topParty.name, cBracket[match.nextMatchId - cBracket[0].id].participants[1].id, cBracket[match.nextMatchId - cBracket[0].id].participants[1].name, match.nextMatchId])
                                     } else {
@@ -390,6 +450,45 @@ function SinglesBracket({}) {
                                                 id: cBracket[match.nextMatchId - cBracket[0].id].participants[0].id,
                                                 isWinner: false,
                                                 name: cBracket[match.nextMatchId - cBracket[0].id].participants[0].name,
+                                            },
+                                            {
+                                                id: topParty.id,
+                                                isWinner: false,
+                                                name: topParty.name,
+                                            }
+                                        ]),
+                                        tournamentRoundText: temp[match.nextMatchId].tournamentRoundText
+                                    }
+                                } else if (match.tournamentRoundText.toString() === "2") {
+                                    if (match.id < num2) {
+                                        insertMatchArr.push(["SinglesBBracket", topParty.id, topParty.name, bBracket[match.nextMatchId - bBracket[0].id].participants[1].id, bBracket[match.nextMatchId - bBracket[0].id].participants[1].name, match.nextMatchId])
+                                    } else {
+                                        insertMatchArr.push(["SinglesBBracket", bBracket[match.nextMatchId - bBracket[0].id].participants[0].id, bBracket[match.nextMatchId - bBracket[0].id].participants[0].name, topParty.id, topParty.name, match.nextMatchId])
+                                    }
+                                    bBracket[match.nextMatchId - bBracket[0].id] = {
+                                        id: match.nextMatchId,
+                                        name: "name",
+                                        // nextMatchId: midPoint + i,
+                                        nextMatchId: temp[match.nextMatchId].nextMatchId,
+                                        state: "SCHEDULED",
+                                        participants: (match.id < num2 ? [
+                                            {
+                                                id: topParty.id,
+                                                isWinner: false,
+                                                name: topParty.name,
+                                            },
+                                            {
+                                                id: bBracket[match.nextMatchId - bBracket[0].id].participants[1].id,
+                                                isWinner: false,
+                                                name: bBracket[match.nextMatchId - bBracket[0].id].participants[1].name,
+                                            }
+
+
+                                        ] : [
+                                            {
+                                                id: bBracket[match.nextMatchId - bBracket[0].id].participants[0].id,
+                                                isWinner: false,
+                                                name: bBracket[match.nextMatchId - bBracket[0].id].participants[0].name,
                                             },
                                             {
                                                 id: topParty.id,
@@ -445,6 +544,8 @@ function SinglesBracket({}) {
                                 dispatch(updateChampionshipBracketMatches(temp))
                                 if (match.tournamentRoundText === "1") {
                                     dispatch(updateCBracketMatches(cBracket))
+                                } else if (match.tournamentRoundText.toString() === "2") {
+                                    dispatch(updateBBracketMatches(bBracket));
                                 }
                             }}
                         >

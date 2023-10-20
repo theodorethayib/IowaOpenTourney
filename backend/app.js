@@ -922,3 +922,44 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
 })
+
+app.post('/loadBracket', (req, res) => {
+    let data = req.body.bracket
+    let arr = []
+    let sql = `SELECT matchId matchId, matchName matchName, nextMatchId nextMatchId, roundText tournamentRoundText, participant1Id participant1Id, participant1IsWinner participant1IsWinner, participant1Name participant1Name, participant2Id participant2Id, participant2IsWinner participant2IsWinner, participant2Name participant2Name FROM ` + data + ` ORDER BY matchId`
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            throw err;
+        }
+        rows.forEach((row) => {
+            let state = ""
+            if (row.participant1IsWinner || row.participant2IsWinner) {
+                state = "DONE";
+            } else {
+                state = "SCHEDULED";
+            }
+            let tempObj = {
+                "id": row.matchId,
+                "name": row.matchName,
+                "nextMatchId": row.nextMatchId,
+                "tournamentRoundText": row.tournamentRoundText,
+                "state": state,
+                "participants": [
+                    {
+                        "id": row.participant1Id,
+                        "isWinner": row.participant1IsWinner,
+                        "name": row.participant1Name
+                    },
+                    {
+                        "id": row.participant2Id,
+                        "isWinner": row.participant2IsWinner,
+                        "name": row.participant2Name
+                    }
+                ]
+            }
+            arr.push(tempObj)
+        });
+        res.send(arr);
+    })
+    console.log(arr);
+})

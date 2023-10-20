@@ -8,12 +8,13 @@ import {
 } from '@g-loot/react-tournament-brackets';
 import defaultTheme from "../Themes/defaultTheme";
 import {useSelector, useDispatch} from "react-redux";
-import {updateBBracketMatches} from "../../features/singles/singlesSlice";
+import {updateBBracketMatches, updateCBracketMatches, updateDBracketMatches} from "../../features/singles/singlesSlice";
 import axios from "axios";
 
 function SinglesCBracket({}) {
     const dispatch = useDispatch()
     const matchArray = structuredClone(useSelector((state) => state.singles.cBracketMatches));
+    const dMatchArray = structuredClone(useSelector((state) => state.singles.dBracketMatches));
 
     // const [width, height] = [1920, 1080];
     // const finalWidth = Math.max(width - 50, 500);
@@ -33,6 +34,9 @@ function SinglesCBracket({}) {
 
     return (
         <div>
+            <button type="button" onClick={() => {
+                console.log(matchArray)
+            }}>TESFDFKJL</button>
             {(matchArray.length > 0 && doDisp) && (<>{matchArray.length}<SingleEliminationBracket
                 matches={matchArray}
                 options={{
@@ -87,11 +91,14 @@ function SinglesCBracket({}) {
                         <div
                             onMouseEnter={() => onMouseEnter(topParty.id)}
                             style={{display: 'flex'}}
-                            onMouseUp={() => {
+                            onMouseUp={async () => {
+                                let updateMatchBracketObj = {};
+                                let insertMatchArr = [];
                                 // alert("TEST")
-                                let num = ((matchArray.length) + 1) / 2;
-
-                                let matchIdMidValueIncr = num/4 + num/2;
+                                let num = ((matchArray.length) + 1);
+                                console.log("NUM IS: " + num)
+                                let matchIdMidValueIncr = num / 4 + num / 2;
+                                console.log("MATCH ID INCR IS: " + matchIdMidValueIncr);
                                 let num2 = num / 2
                                 let tempCompArr = [num]
                                 let tempMidValueArr = [num2]
@@ -99,13 +106,16 @@ function SinglesCBracket({}) {
                                     if (match.id < num) {
                                         break;
                                     }
-                                    num += (i/2);
+                                    num += (i / 2);
                                     tempCompArr.push(num);
                                     num2 += matchIdMidValueIncr
                                     tempMidValueArr.push(num2)
                                     matchIdMidValueIncr /= 2;
 
                                 }
+                                console.log("NUM IS: " + num)
+                                console.log("MATCH ID INCR IS: " + matchIdMidValueIncr);
+                                console.log("NUM 2 is: " + num2)
                                 // console.log("COMP ARR: " + tempCompArr)
                                 // console.log("MID ARR: " + tempMidValueArr)
                                 // console.log("COMP: " + num);
@@ -113,9 +123,10 @@ function SinglesCBracket({}) {
                                 // console.log(match);
                                 // console.log(matchArray)
                                 let temp = structuredClone(matchArray)
+                                let dBracket = structuredClone(dMatchArray)
                                 console.log("TEMP ARR")
                                 console.log(temp)
-                                temp[match.id] = {
+                                temp[match.id - temp[0].id] = {
                                     "id": match.id,
                                     "name": "name",
                                     "nextMatchId": match.nextMatchId,
@@ -131,16 +142,62 @@ function SinglesCBracket({}) {
                                             "isWinner": false,
                                             "name": bottomParty.name
                                         }
-                                    ]
+                                    ],
+                                    "tournamentRoundText": match.tournamentRoundText
                                 }
+                                updateMatchBracketObj.matchResult = ["SinglesCBracket", true, false, match.id - temp[0].id]
                                 console.log("SDFSDFSDF")
                                 console.log()
-                                console.log(temp[match.id])
-                                temp[match.nextMatchId] = {
+                                console.log(temp[match.id - temp[0].id])
+                                // updateMatchBracketObj.matchResult = ["SinglesCBracket", true, false, match.id - temp[0].id]
+                                console.log("BLA BLA " + match.tournamentRoundText)
+                                if (match.tournamentRoundText.toString() === "2") {
+                                    console.log("ROUND 2")
+                                    if (match.id < num2) {
+                                        insertMatchArr.push(["SinglesDBracket", bottomParty.id, bottomParty.name, dBracket[match.nextMatchId - dBracket[0].id].participants[1].id, dBracket[match.nextMatchId - dBracket[0].id].participants[1].name, match.nextMatchId])
+                                    } else {
+                                        insertMatchArr.push(["SinglesDBracket", dBracket[match.nextMatchId - dBracket[0].id].participants[0].id, dBracket[match.nextMatchId - dBracket[0].id].participants[0].name, bottomParty.id, bottomParty.name, match.nextMatchId])
+                                    }
+                                    dBracket[match.nextMatchId - dBracket[0].id] = {
+                                        id: match.nextMatchId,
+                                        name: "name",
+                                        // nextMatchId: midPoint + i,
+                                        nextMatchId: dBracket[match.nextMatchId - dBracket[0].id].nextMatchId,
+                                        state: "SCHEDULED",
+                                        participants: (match.id < num2 ? [
+                                            {
+                                                id: bottomParty.id,
+                                                isWinner: false,
+                                                name: bottomParty.name,
+                                            },
+                                            {
+                                                id: dBracket[match.nextMatchId - dBracket[0].id].participants[1].id,
+                                                isWinner: false,
+                                                name: dBracket[match.nextMatchId - dBracket[0].id].participants[1].name,
+                                            }
+
+
+                                        ] : [
+                                            {
+                                                id: dBracket[match.nextMatchId - dBracket[0].id].participants[0].id,
+                                                isWinner: false,
+                                                name: dBracket[match.nextMatchId - dBracket[0].id].participants[0].name,
+                                            },
+                                            {
+                                                id: bottomParty.id,
+                                                isWinner: false,
+                                                name: bottomParty.name,
+                                            }
+                                        ]),
+                                        tournamentRoundText: dBracket[match.nextMatchId - dBracket[0].id].tournamentRoundText
+                                    }
+                                }
+
+                                temp[match.nextMatchId - temp[0].id] = {
                                     id: match.nextMatchId,
                                     name: "name",
                                     // nextMatchId: midPoint + i,
-                                    nextMatchId: temp[match.nextMatchId].nextMatchId,
+                                    nextMatchId: temp[match.nextMatchId - temp[0].id].nextMatchId,
                                     state: "SCHEDULED",
                                     participants: (match.id < num2 ? [
                                         {
@@ -149,25 +206,39 @@ function SinglesCBracket({}) {
                                             name: topParty.name,
                                         },
                                         {
-                                            id: temp[match.nextMatchId].participants[1].id,
+                                            id: temp[match.nextMatchId - temp[0].id].participants[1].id,
                                             isWinner: false,
-                                            name: temp[match.nextMatchId].participants[1].name,
+                                            name: temp[match.nextMatchId - temp[0].id].participants[1].name,
                                         }
                                     ] : [
                                         {
-                                            id: temp[match.nextMatchId].participants[0].id,
+                                            id: temp[match.nextMatchId - temp[0].id].participants[0].id,
                                             isWinner: false,
-                                            name: temp[match.nextMatchId].participants[0].name,
+                                            name: temp[match.nextMatchId - temp[0].id].participants[0].name,
                                         },
                                         {
                                             id: topParty.id,
                                             isWinner: false,
                                             name: topParty.name,
                                         }
-                                    ])
+                                    ]),
+                                    tournamentRoundText: temp[match.nextMatchId - temp[0].id].tournamentRoundText
                                 }
                                 setDispMatchArray(temp);
-                                dispatch(updateBBracketMatches(temp))
+                                if (match.id < num2) {
+                                    console.log("TOP1")
+                                    insertMatchArr.push(["singlesCBracket", topParty.id, topParty.name, temp[match.nextMatchId - temp[0].id].participants[1].id, temp[match.nextMatchId - temp[0].id].participants[1].name, match.nextMatchId])
+                                } else {
+                                    console.log("BOTTOM1")
+                                    insertMatchArr.push(["singlesCBracket", temp[match.nextMatchId - temp[0].id].participants[0].id, temp[match.nextMatchId - temp[0].id].participants[0].name, topParty.id, topParty.name, match.nextMatchId])
+                                }
+                                updateMatchBracketObj.nextMatch = insertMatchArr;
+
+                                let res = await axios.post("http://localhost:5000/updateMatchBracket", updateMatchBracketObj);
+                                console.log(res);
+
+                                dispatch(updateCBracketMatches(temp))
+                                dispatch(updateDBracketMatches(dBracket));
                             }}
                         >
                             <div>{topParty.name || teamNameFallback}</div>
@@ -182,7 +253,9 @@ function SinglesCBracket({}) {
                             onMouseUp={async () => {
 
                                 // alert("TEST")
-                                let num = ((matchArray.length) + 1) / 2;
+                                let updateMatchBracketObj = {};
+                                let insertMatchArr = [];
+                                let num = ((matchArray.length) + 1);
 
                                 let matchIdMidValueIncr = num / 4 + num / 2;
                                 let num2 = num / 2
@@ -200,9 +273,10 @@ function SinglesCBracket({}) {
 
                                 }
                                 let temp = structuredClone(matchArray)
+                                let dBracket = structuredClone(dMatchArray)
                                 console.log("TEMP ARR")
                                 console.log(temp)
-                                temp[match.id] = {
+                                temp[match.id - temp[0].id] = {
                                     "id": match.id,
                                     "name": "name",
                                     "nextMatchId": match.nextMatchId,
@@ -218,13 +292,55 @@ function SinglesCBracket({}) {
                                             "isWinner": true,
                                             "name": bottomParty.name
                                         }
-                                    ]
+                                    ],
+                                    "tournamentRoundText": match.tournamentRoundText
                                 }
-                                temp[match.nextMatchId] = {
+                                updateMatchBracketObj.matchResult = ["SinglesCBracket", false, true, match.id]
+                                if (match.tournamentRoundText.toString() === "2") {
+                                    if (match.id < num2) {
+                                        insertMatchArr.push(["SinglesDBracket", topParty.id, topParty.name, dBracket[match.nextMatchId - dBracket[0].id].participants[1].id, dBracket[match.nextMatchId - dBracket[0].id].participants[1].name, match.nextMatchId])
+                                    } else {
+                                        insertMatchArr.push(["SinglesDBracket", dBracket[match.nextMatchId - dBracket[0].id].participants[0].id, dBracket[match.nextMatchId - dBracket[0].id].participants[0].name, topParty.id, topParty.name, match.nextMatchId])
+                                    }
+                                    dBracket[match.nextMatchId - dBracket[0].id] = {
+                                        id: match.nextMatchId,
+                                        name: "name",
+                                        // nextMatchId: midPoint + i,
+                                        nextMatchId: dBracket[match.nextMatchId - dBracket[0].id].nextMatchId,
+                                        state: "SCHEDULED",
+                                        participants: (match.id < num2 ? [
+                                            {
+                                                id: topParty.id,
+                                                isWinner: false,
+                                                name: topParty.name,
+                                            },
+                                            {
+                                                id: dBracket[match.nextMatchId - dBracket[0].id].participants[1].id,
+                                                isWinner: false,
+                                                name: dBracket[match.nextMatchId - dBracket[0].id].participants[1].name,
+                                            }
+
+
+                                        ] : [
+                                            {
+                                                id: dBracket[match.nextMatchId - dBracket[0].id].participants[0].id,
+                                                isWinner: false,
+                                                name: dBracket[match.nextMatchId - dBracket[0].id].participants[0].name,
+                                            },
+                                            {
+                                                id: topParty.id,
+                                                isWinner: false,
+                                                name: topParty.name,
+                                            }
+                                        ]),
+                                        tournamentRoundText: dBracket[match.nextMatchId - dBracket[0].id].tournamentRoundText
+                                    }
+                                }
+                                temp[match.nextMatchId - temp[0].id] = {
                                     id: match.nextMatchId,
                                     name: "name",
                                     // nextMatchId: midPoint + i,
-                                    nextMatchId: temp[match.nextMatchId].nextMatchId,
+                                    nextMatchId: temp[match.nextMatchId - temp[0].id].nextMatchId,
                                     state: "SCHEDULED",
                                     participants: (match.id < num2 ? [
                                         {
@@ -233,25 +349,39 @@ function SinglesCBracket({}) {
                                             name: bottomParty.name,
                                         },
                                         {
-                                            id: temp[match.nextMatchId].participants[1].id,
+                                            id: temp[match.nextMatchId - temp[0].id].participants[1].id,
                                             isWinner: false,
-                                            name: temp[match.nextMatchId].participants[1].name,
+                                            name: temp[match.nextMatchId - temp[0].id].participants[1].name,
                                         }
                                     ] : [
                                         {
-                                            id: temp[match.nextMatchId].participants[0].id,
+                                            id: temp[match.nextMatchId - temp[0].id].participants[0].id,
                                             isWinner: false,
-                                            name: temp[match.nextMatchId].participants[0].name,
+                                            name: temp[match.nextMatchId - temp[0].id].participants[0].name,
                                         },
                                         {
                                             id: bottomParty.id,
                                             isWinner: false,
                                             name: bottomParty.name,
                                         }
-                                    ])
+                                    ]),
+                                    tournamentRoundText: temp[match.nextMatchId - temp[0].id].tournamentRoundText
                                 }
+                                if (match.id < num2) {
+                                    console.log("TOP234")
+                                    console.log(bottomParty.name)
+                                    insertMatchArr.push(["singlesCBracket", bottomParty.id, bottomParty.name, temp[match.nextMatchId - temp[0].id].participants[1].id, temp[match.nextMatchId - temp[0].id].participants[1].name, match.nextMatchId])
+                                } else {
+                                    console.log("BOTTOM234")
+                                    insertMatchArr.push(["singlesCBracket", temp[match.nextMatchId - temp[0].id].participants[0].id, temp[match.nextMatchId - temp[0].id].participants[0].name, bottomParty.id, bottomParty.name, match.nextMatchId])
+                                }
+                                updateMatchBracketObj.nextMatch = insertMatchArr;
+
+                                let res = await axios.post("http://localhost:5000/updateMatchBracket", updateMatchBracketObj);
+                                console.log(res);
                                 setDispMatchArray(temp);
-                                dispatch(updateBBracketMatches(temp))
+                                dispatch(updateCBracketMatches(temp))
+                                dispatch(updateDBracketMatches(dBracket));
                                 // let res = await axios.post("http://localhost:5000/", {});
                             }}
                         >

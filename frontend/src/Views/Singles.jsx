@@ -22,6 +22,7 @@ import SinglesConsolationBracket from "./Components/SinglesBBracket";
 import SinglesRoundRobin from "./Components/SinglesRoundRobin";
 import SinglesBBracket from "./Components/SinglesBBracket";
 import SinglesCBracket from "./Components/SinglesCBracket";
+import SinglesDBracket from "./Components/SinglesDBracket";
 
 
 // import useWindowSize from "@g-loot/react-tournament-brackets/dist/src/hooks/use-window-size";
@@ -175,7 +176,7 @@ function Singles() {
     const [showChampionshipBracket, setShowChampionshipBracket] = useState(true);
     const [showBBracket, setShowBBracket] = useState(true);
     const [showCBracket, setShowCBracket] = useState(true);
-    const [showDBracket, setShowDpBracket] = useState(true);
+    const [showDBracket, setShowDBracket] = useState(true);
 
     const [matchList, setMatchList] = useState([]);
 
@@ -303,6 +304,20 @@ function Singles() {
     //     }
     //     dispatch(updateMatches(temp))
     // }
+    async function loadBracket(bracket) {
+        let res = await axios.post("http://localhost:5000/loadBracket", {"bracket": bracket});
+        console.log(res.data)
+        if (bracket === "SinglesChampionshipBracket") {
+            dispatch(updateChampionshipBracketMatches(res.data))
+        } else if (bracket === "SinglesBBracket") {
+            dispatch(updateBBracketMatches(res.data))
+        } else if (bracket === "SinglesCBracket") {
+            dispatch(updateCBracketMatches(res.data))
+        } else {
+            dispatch(updateDBracketMatches(res.data))
+        }
+
+    }
 
     return (
         <div>
@@ -316,6 +331,11 @@ function Singles() {
             <button onClick={uploadRoundRobinData}>Upload RR Data to DB</button>
             <br />
             <button onClick={generateChampionshipBracket}>Generate Championship Bracket</button>
+            <br />
+            <button onClick={() => loadBracket('SinglesChampionshipBracket')}>Load A Bracket</button>
+            <button onClick={() => loadBracket('SinglesBBracket')}>Load B Bracket</button>
+            <button onClick={() => loadBracket('SinglesCBracket')}>Load C Bracket</button>
+            <button onClick={() => loadBracket('SinglesDBracket')}>Load D Bracket</button>
             {/*<button onClick={enterResults}>ENTER RESULT MATCHES</button>*/}
             <hr />
             <h1>ROUND ROBIN</h1>
@@ -326,11 +346,26 @@ function Singles() {
             </div>
             {showChampionshipBracket && (<SinglesBracket/>)}
 
+            <div onClick={() => setShowBBracket(!showBBracket)}>
+                <hr />
+                <h1>B BRACKET</h1>
+            </div>
+            {showBBracket && (<SinglesBBracket/>)}
+
+
             <div onClick={() => setShowCBracket(!showCBracket)}>
             <hr />
             <h1>C BRACKET</h1>
             </div>
             {showCBracket && (<><SinglesCBracket /></>)}
+
+
+            <div onClick={() => setShowDBracket(!showDBracket)}>
+                <hr />
+                <h1>D BRACKET</h1>
+            </div>
+            {showDBracket && (<><SinglesDBracket /></>)}
+
 
             {/*<SinglesBBracket />*/}
             {/*<SinglesConsolationBracket />*/}
