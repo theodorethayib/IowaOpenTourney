@@ -32,7 +32,8 @@ function SinglesBracket({}) {
         // console.log(ele.nativeEvent.data)
         // console.log(typeof ele.nativeEvent.data)
         let num = Number(ele.nativeEvent.data);
-        if (num && num > 0 && num <= 8) {
+        console.log(ele.nativeEvent.data);
+        if (num && num > 0 && num <= 9) {
             console.log(groupNum)
             console.log("GROUPNUM: " + (groupNum - 1) + " SEED: "  + rrId)
             console.log(rrId)
@@ -42,6 +43,15 @@ function SinglesBracket({}) {
             tempArr[groupNum - 1][rrId - 1].placement = num;
             dispatch(updateRoundRobinGroups(tempArr));
             // dispatch(upda)
+        } else if (ele.nativeEvent.data === "a" || ele.nativeEvent.data === "0") {
+            console.log("TEMPSSS")
+            let tempArr = structuredClone(groupArray);
+            tempArr[groupNum - 1][rrId - 1].placement = 10;
+            dispatch(updateRoundRobinGroups(tempArr));
+        } else if (ele.nativeEvent.data === "b" || ele.nativeEvent.data === "-") {
+            let tempArr = structuredClone(groupArray);
+            tempArr[groupNum - 1][rrId - 1].placement = 11;
+            dispatch(updateRoundRobinGroups(tempArr));
         }
     }
 
@@ -68,7 +78,7 @@ function SinglesBracket({}) {
                                                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                                 <TableCell>{row.groupSeed}</TableCell>
                                                 <TableCell>{row.playerName}</TableCell>
-                                                <TableCell><input type="number" min="0" max="8" value={row.placement} onInput={e => placementInput(e, row.groupNum, row.groupSeed)} /></TableCell>
+                                                <TableCell><input type="text" min="0" max="8" value={row.placement} onInput={e => placementInput(e, row.groupNum, row.groupSeed)} /></TableCell>
 
                                             </TableRow>
                                         ))}

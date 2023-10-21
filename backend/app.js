@@ -97,35 +97,58 @@ app.get('/generateSinglesRoundRobinGroups', (req, res) => {
                 })
             }
         });
-
+        // console.log("DATA")
+        // console.log(data)
         db.serialize(() => {
             db.run('DROP TABLE IF EXISTS SinglesRoundRobin')
                 .run('CREATE TABLE SinglesRoundRobin(rrId integer PRIMARY KEY AUTOINCREMENT, rrGroupNum integer, rrPlayerId integer, rrPlayerSeed integer, rrPlayerName text, rrPlacement integer, rrGroupSeed integer)')
-            let numGroups = 8;
-            let numPlayersPerGroup = data.length / numGroups;
-            for (let i = 0; i < numGroups; i++) {
+            let numGroups = 6;
+            // let numPlayersPerGroup = data.length / numGroups;
+            let numPlayersPerGroup = 11;
+            for (let i = 0; i < numPlayersPerGroup; i++) {
                 if (i % 2 === 0) {
-                    for (let j = 0; j < numPlayersPerGroup; j++) {
-                        let tempData = [j + 1, data[i * numGroups + j].ID, data[i * numGroups + j].Seed, data[i * numGroups + j].Name, 0, i + 1]
-                        let sql = `INSERT INTO SinglesRoundRobin(rrGroupNum, rrPlayerId, rrPlayerSeed, rrPlayerName, rrPlacement, rrGroupSeed) VALUES(?, ?, ?, ?, ?, ?)`
-                        db.run(sql, tempData, function (err) {
-                            if (err) {
-                                return console.error(err.message);
-                            }
-                        })
+                    for (let j = 0; j < numGroups; j++) {
+                        console.log("TEST")
+                        console.log("I: " + i + " numGroups: " + numGroups + " j: " + j)
+                        console.log(i * numGroups + j)
+                        if (i * numGroups + j < 64) {
+                            let tempData = [j + 1, data[i * numGroups + j].ID, data[i * numGroups + j].Seed, data[i * numGroups + j].Name, 0, i + 1]
+                            // console.log(tempData)
+                            console.log()
+                            let sql = `INSERT INTO SinglesRoundRobin(rrGroupNum, rrPlayerId, rrPlayerSeed, rrPlayerName, rrPlacement, rrGroupSeed) VALUES(?, ?, ?, ?, ?, ?)`
+                            db.run(sql, tempData, function (err) {
+                                if (err) {
+                                    return console.error(err.message);
+                                }
+                            })
+                        }
+
                     }
                 } else {
-                    for (let j = numPlayersPerGroup - 1; j >= 0; j--) {
-                        let tempData = [j + 1, data[i * numGroups + j].ID, data[i * numGroups + j].Seed, data[i * numGroups + j].Name, 0, i + 1]
-                        let sql = `INSERT INTO SinglesRoundRobin(rrGroupNum, rrPlayerId, rrPlayerSeed, rrPlayerName, rrPlacement, rrGroupSeed) VALUES(?, ?, ?, ?, ?, ?)`
-                        db.run(sql, tempData, function (err) {
-                            if (err) {
-                                return console.error(err.message);
-                            }
-                        })
+                    let tempNum = 0;
+                    for (let j = numGroups - 1; j >= 0; j--) {
+                        tempNum++;
+                        console.log("TESTING")
+                        console.log("I: " + i + " numGroups: " + numGroups + " j: " + j)
+                        console.log(i * numGroups + j)
+                        // console.log(i * numGroups + j)
+                        // console.log(data[i * numGroups + j])
+                        if (i * numGroups + j < 64) {
+                            let tempData = [tempNum, data[i * numGroups + j].ID, data[i * numGroups + j].Seed, data[i * numGroups + j].Name, 0, i + 1]
+                            let sql = `INSERT INTO SinglesRoundRobin(rrGroupNum, rrPlayerId, rrPlayerSeed, rrPlayerName, rrPlacement, rrGroupSeed) VALUES(?, ?, ?, ?, ?, ?)`
+                            db.run(sql, tempData, function (err) {
+                                if (err) {
+                                    return console.error(err.message);
+                                }
+                            })
+                        }
+
                     }
                 }
             }
+            // for (let i = 43; i < 64; i++) {
+            //     let tempData = [i, "bye", ]
+            // }
         })
         console.log("Singles Round Robin Groups Reset!")
         res.send("SUCCESS");
@@ -150,11 +173,11 @@ app.get('/hardResetSinglesChampionshipBracket', (req, res) => {
                 })
             }
         });
-
+        let bracketSize = 64;
         db.serialize(() => {
             db.run('DROP TABLE IF EXISTS SinglesChampionshipBracket')
                 .run('CREATE TABLE SinglesChampionshipBracket(matchId integer, matchName text, nextMatchId integer, roundText integer, participant1Id integer, participant1IsWinner text, participant1Name text, participant2Id integer, participant2IsWinner text, participant2Name text)')
-            let midPoint = data.length / 2;
+            let midPoint = bracketSize / 2;
             let counter = 0;
             let roundTxt = 1;
             for (let i = 0; i < midPoint; i++) {
@@ -219,11 +242,11 @@ app.get('/hardResetSinglesConsolationBracket', (req, res) => {
                 })
             }
         });
-
+        let bracketSize = 64;
         db.serialize(() => {
             db.run('DROP TABLE IF EXISTS SinglesConsolationBracket')
                 .run('CREATE TABLE SinglesConsolationBracket(matchId integer, matchName text, nextMatchId integer, roundText integer, participant1Id integer, participant1IsWinner text, participant1Name text, participant2Id integer, participant2IsWinner text, participant2Name text)')
-            let midPoint = data.length / 2;
+            let midPoint = bracketSize / 2;
             let counter = 0;
             let roundTxt = 1;
             for (let i = 0; i < midPoint; i++) {
@@ -264,6 +287,7 @@ app.get('/hardResetSinglesConsolationBracket', (req, res) => {
                 }
             })
         })
+
         console.log("Singles Consolation Bracket Reset!")
         res.send("SUCCESS");
     })
@@ -278,7 +302,7 @@ app.get('/getSinglesRoundRobinGroups', (req, res) => {
         }
         let tempArr = []
         rows.forEach((row) => {
-            console.log("LENGTH: " + tempArr.length)
+            // console.log("LENGTH: " + tempArr.length)
             if (tempArr.length === 0 || tempArr[tempArr.length - 1].groupNum === row.groupNum) {
                 tempArr.push(row);
             } else {
@@ -333,12 +357,12 @@ app.get('/generateSinglesChampionshipBracket', (req, res) => {
                 "PlayerId": row.id,
             })
         });
-
+        let bracketSize = 64;
         db.serialize(() => {
             db.run('DROP TABLE IF EXISTS SinglesChampionshipBracket')
                 .run('CREATE TABLE SinglesChampionshipBracket(matchId integer, matchName text, nextMatchId integer, roundText integer, participant1Id integer, participant1IsWinner text, participant1Name text, participant2Id integer, participant2IsWinner text, participant2Name text)')
 
-            let midPoint = data.length / 2;
+            let midPoint = bracketSize / 2;
             let counter = 0;
             let roundTxt = 1;
             for (let i = 0; i < midPoint; i++) {
@@ -467,7 +491,7 @@ app.get('/generateSinglesBBracket', (req, res) => {
                 "PlayerId": row.id,
             })
         });
-
+        // let bracketSize = 64/2;
         db.serialize(() => {
             db.run('DROP TABLE IF EXISTS SinglesBBracket')
                 .run('CREATE TABLE SinglesBBracket(matchId integer, matchName text, nextMatchId integer, roundText integer, participant1Id integer, participant1IsWinner text, participant1Name text, participant2Id integer, participant2IsWinner text, participant2Name text)')
